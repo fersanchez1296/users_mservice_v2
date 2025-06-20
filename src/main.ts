@@ -16,6 +16,7 @@ async function bootstrap() {
     origin: ['http://localhost:4000'],
     methods: 'GET,HEAD,PUT,PATCH,POST',
     credentials: true,
+    transform: true,
   });
   const config = new DocumentBuilder()
     .setTitle('Usuarios')
