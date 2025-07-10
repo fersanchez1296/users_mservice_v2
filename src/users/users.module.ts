@@ -5,10 +5,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Usuarios, UserSchema } from './schemas/user.schema';
 import { Area, AreaSchema } from './schemas/area.schema';
 import { Rol, RolSchema } from './schemas/rol.schema';
-import { DireccionGeneral, DireccionGeneralSchema } from './schemas/direccion_general.schema';
+import {
+  DireccionGeneral,
+  DireccionGeneralSchema,
+} from './schemas/direccion_general.schema';
 import { Dependencia, DependenciaSchema } from './schemas/dependencia.schema';
 import { CelulaSchema, Celula } from './schemas/celula.schema';
 import { Puesto, PuestoSchema } from './schemas/puestos.schema';
+import { RedisPublisher } from 'src/redis/redis.publisher';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -22,6 +26,6 @@ import { Puesto, PuestoSchema } from './schemas/puestos.schema';
     ]),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, RedisPublisher],
 })
-export class UsersModule { }
+export class UsersModule {}
