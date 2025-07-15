@@ -16,6 +16,7 @@ import { populateUsers } from 'src/common/utils/populateUsers.util';
 import { Dependencia } from './schemas/dependencia.schema';
 import { Celula } from './schemas/celula.schema';
 import { Puesto } from './schemas/puestos.schema';
+import { LogsService } from 'src/services/logs.service';
 @Injectable()
 export class UsersService {
   constructor(
@@ -26,19 +27,23 @@ export class UsersService {
     private readonly dGeneral: Model<DireccionGeneral>,
     @InjectModel(Dependencia.name)
     private readonly dependenciaModel: Model<Dependencia>,
+    private readonly logsService: LogsService,
     @InjectModel(Celula.name) private readonly celulaModel: Model<Celula>,
     @InjectModel(Puesto.name) private readonly puestoModel: Model<Puesto>,
   ) { }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, token: string) {
     try {
       const newUser = await this.userModel.create(createUserDto);
-      return newUser;
+      const data = { Username: newUser.Username, destinatario: newUser.Correo }
+      if (newUser) {
+        const savedlog = await this.logsService.enviarLog(data, "usuarioCreado", token);
+        return newUser;
+      }
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException("Error interno en el servidor: Error al crear al usuario")
+      const savedlog = await this.logsService.enviarLog({ Nombre: createUserDto.Nombre }, "usuarioNoCreado", token, error);
+      throw new InternalServerErrorException("Error interno en el servidor: Error al crear al usuario");
     }
-
   }
 
   async findAll() {
@@ -100,29 +105,36 @@ export class UsersService {
       .populate({ path: 'Area', model: 'Area' });
   }
 
-  async update(id: string, updateUserDto: any) {
+  async update(id: string, updateUserDto: any, token: string) {
     try {
       const userUpdated = await this.userModel.findOneAndUpdate({ _id: id }, { $set: updateUserDto });
-      if (!userUpdated) {
+      const data = { Username: userUpdated?.Username, destinatario: userUpdated?.Correo }
+      if (userUpdated) {
+        const savedlog = await this.logsService.enviarLog(data, "usuarioactualizado", token);
+        return { message: "La información del usuario fue actualizada con exito" };
+      } else {
         throw new BadRequestException("Ocurrió un error al actualizar la información del usuario.")
       }
-      return { message: "La información del usuario fue actualizada con exito" };
     } catch (error) {
+      const savedlog = await this.logsService.enviarLog({ Nombre: updateUserDto.Nombre }, "usuarioNoactualizado", token, error);
       throw new InternalServerErrorException("Error interno en el servidor: Ocurrió un error al actualizar la información del usuario.")
     }
   }
 
-  async updateEstadoUsuario(id: string, estado: boolean) {
+  async updateEstadoUsuario(id: string, estado: boolean, token: string) {
     try {
+      const usuario = await this.userModel.findById(id);
       const result = await this.userModel.updateOne({ _id: id }, { $set: { isActive: estado } });
-
-      if (!result) {
-        throw new BadRequestException("Ocurrio un error al actualizar el estado del usuario")
+      const data = { message: "El estado del usuario fue actualizado con exito.", Username: usuario?.Username }
+      if (result) {
+        const savedlog = await this.logsService.enviarLog(data, "estadoActualizado", token);
+      } else {
+        const savedlog = await this.logsService.enviarLog(data, "estadoNoActualizado", token);
+        throw new BadRequestException("Ocurrió un error al actualizar la información del usuario.")
       }
-
-      return { message: "El estado del usuario fue actualizado con exito" };
     } catch (error) {
-      throw new InternalServerErrorException("Error interno en el servidor: Ocurrio un error al actualizar el estado del usuario")
+      const savedlog = await this.logsService.enviarLog({ message: "Ocurrio un error al actualizar el estado del usuario." }, "usuarioactualizado", token);
+      throw new InternalServerErrorException("Error interno en el servidor: Ocurrió un error al actualizar la información del usuario.")
     }
 
   }

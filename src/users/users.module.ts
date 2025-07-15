@@ -9,6 +9,8 @@ import { DireccionGeneral, DireccionGeneralSchema } from './schemas/direccion_ge
 import { Dependencia, DependenciaSchema } from './schemas/dependencia.schema';
 import { CelulaSchema, Celula } from './schemas/celula.schema';
 import { Puesto, PuestoSchema } from './schemas/puestos.schema';
+import { Logs, LogsSchema } from './schemas/log.schema';
+import { LogsService } from 'src/services/logs.service';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -19,9 +21,11 @@ import { Puesto, PuestoSchema } from './schemas/puestos.schema';
       { name: Dependencia.name, schema: DependenciaSchema },
       { name: Celula.name, schema: CelulaSchema },
       { name: Puesto.name, schema: PuestoSchema },
+      { name: Logs.name, schema: LogsSchema },
     ]),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, LogsService],
+  exports: [LogsService],
 })
 export class UsersModule { }

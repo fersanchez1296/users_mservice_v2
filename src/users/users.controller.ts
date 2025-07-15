@@ -19,6 +19,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
 import { GeneratePasswordInterceptor } from 'src/interceptors/generate-password.interceptor';
+import { Token } from 'src/decorators/token.decorator';
 
 @ApiTags('Usuarios')
 @ApiBearerAuth()
@@ -30,9 +31,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Crea un nuevo usuario' })
   @UseInterceptors(GenerateUserInterceptor, GeneratePasswordInterceptor)
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto, @Token() token: string) {
     console.log(createUserDto)
-    return await this.usersService.create(createUserDto);
+    return await this.usersService.create(createUserDto, token);
   }
 
   @ApiOperation({ summary: 'Obtiene todos los usuarios de la base de datos' })
@@ -57,14 +58,13 @@ export class UsersController {
   }
 
   @Patch('/editar/:id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    console.log(updateUserDto)
-    return await this.usersService.update(id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Token() token: string) {
+    return await this.usersService.update(id, updateUserDto, token);
   }
 
   @Patch('/estado/:id')
-  async updateEstadoUsuario(@Param('id') id: string, @Body() estadoUsuario: { estado: boolean }) {
+  async updateEstadoUsuario(@Param('id') id: string, @Body() estadoUsuario: { estado: boolean }, @Token() token: string) {
     const { estado } = estadoUsuario;
-    return await this.usersService.updateEstadoUsuario(id, estado);
+    return await this.usersService.updateEstadoUsuario(id, estado, token);
   }
 }
