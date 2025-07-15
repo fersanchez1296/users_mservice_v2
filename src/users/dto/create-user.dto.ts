@@ -10,6 +10,9 @@ export class CreateUserDto {
   @IsString()
   Password: string;
 
+  @IsString()
+  hashedPassword?: string;
+
   @ApiProperty({ description: 'Nombre de usuario' })
   @IsString({ message: 'El nombre debe ser un texto' })
   Nombre: string;

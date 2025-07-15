@@ -28,14 +28,19 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
+<<<<<<< HEAD
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
+=======
+    "bcrypt": "^6.0.0",
+>>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "date-fns-tz": "^3.2.0",
     "mongoose": "^8.13.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "redis": "^5.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1"

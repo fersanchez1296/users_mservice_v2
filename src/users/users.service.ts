@@ -3,12 +3,12 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Usuarios } from './schemas/user.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Area } from './schemas/area.schema';
 import { DireccionGeneral } from './schemas/direccion_general.schema';
 import { Rol } from './schemas/rol.schema';
@@ -16,10 +16,17 @@ import { populateUsers } from 'src/common/utils/populateUsers.util';
 import { Dependencia } from './schemas/dependencia.schema';
 import { Celula } from './schemas/celula.schema';
 import { Puesto } from './schemas/puestos.schema';
+<<<<<<< HEAD
 import { LogsService } from 'src/services/logs.service';
+=======
+import * as bcrypt from 'bcrypt';
+import { handleKnownErrors } from 'src/common/utils/handle-known-errors.util';
+import { RedisPublisher } from 'src/redis/redis.publisher';
+>>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
 @Injectable()
 export class UsersService {
   constructor(
+    private readonly redisPublisher: RedisPublisher,
     @InjectModel(Usuarios.name) private readonly userModel: Model<Usuarios>,
     @InjectModel(Area.name) private readonly areaModel: Model<Area>,
     @InjectModel(Rol.name) private readonly rolModel: Model<Rol>,
@@ -34,6 +41,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto, token: string) {
     try {
+<<<<<<< HEAD
       const newUser = await this.userModel.create(createUserDto);
       const data = { Username: newUser.Username, destinatario: newUser.Correo }
       if (newUser) {
@@ -43,6 +51,20 @@ export class UsersService {
     } catch (error) {
       const savedlog = await this.logsService.enviarLog({ Nombre: createUserDto.Nombre }, "usuarioNoCreado", token, error);
       throw new InternalServerErrorException("Error interno en el servidor: Error al crear al usuario");
+=======
+      const newUser = await this.userModel.create({ ...createUserDto, Password: createUserDto.hashedPassword });
+      if (!newUser) throw new UnprocessableEntityException("No se pudo crear al usuario")
+      const message = {
+        destinatario: newUser.Correo,
+        username: newUser.Username,
+        nombre: newUser.Nombre,
+        password: createUserDto.Password,
+      }
+      await this.redisPublisher.publish("channel_crearUsuario", message)
+      return newUser;
+    } catch (error) {
+      handleKnownErrors(error, "No se pudo crear al usuario")
+>>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     }
   }
 
@@ -57,17 +79,14 @@ export class UsersService {
       const populatedResult = await populateUsers(result);
 
       if (!populatedResult) {
-        throw new BadRequestException(
+        throw new UnprocessableEntityException(
           'Ocurrio un error al formatear la informacion de los usuarios',
         );
       }
 
       return populatedResult;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Ocurrio un error al formatear a los usuarios.',
-      );
+      handleKnownErrors(error, "No se encontraron usuarios")
     }
   }
 
@@ -84,30 +103,37 @@ export class UsersService {
       const populatedResult = await populateUsers(result);
 
       if (!populatedResult) {
-        throw new BadRequestException(
+        throw new UnprocessableEntityException(
           'Ocurrio un error al formatear la informacion de los usuarios',
         );
       }
 
       return populatedResult;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Ocurrio un error al formatear a los usuarios.',
-      );
+      handleKnownErrors(error, "No se encontraron usuarios")
     }
   }
 
   async findOne(id: string) {
-    return this.userModel
-      .findById({ _id: id })
-      .populate({ path: 'Rol', model: 'Rol' })
-      .populate({ path: 'Area', model: 'Area' });
+    try {
+      const result = await this.userModel
+        .findById({ _id: id })
+        .populate({ path: 'Rol', model: 'Rol' })
+        .populate({ path: 'Area', model: 'Area' });
+
+      if (!result) throw new NotFoundException("No se encontró al usuario")
+
+      return result
+    } catch (error) {
+      handleKnownErrors(error, "No se encontró al usuario")
+    }
+
   }
 
   async update(id: string, updateUserDto: any, token: string) {
     try {
       const userUpdated = await this.userModel.findOneAndUpdate({ _id: id }, { $set: updateUserDto });
+<<<<<<< HEAD
       const data = { Username: userUpdated?.Username, destinatario: userUpdated?.Correo }
       if (userUpdated) {
         const savedlog = await this.logsService.enviarLog(data, "usuarioactualizado", token);
@@ -118,6 +144,14 @@ export class UsersService {
     } catch (error) {
       const savedlog = await this.logsService.enviarLog({ Nombre: updateUserDto.Nombre }, "usuarioNoactualizado", token, error);
       throw new InternalServerErrorException("Error interno en el servidor: Ocurrió un error al actualizar la información del usuario.")
+=======
+      if (!userUpdated) {
+        throw new UnprocessableEntityException("Ocurrió un error al actualizar la información del usuario.")
+      }
+      return { message: "La información del usuario fue actualizada con éxito" };
+    } catch (error) {
+      handleKnownErrors(error, "Ocurrió un error al actualizar la información del usuario")
+>>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     }
   }
 
@@ -125,16 +159,26 @@ export class UsersService {
     try {
       const usuario = await this.userModel.findById(id);
       const result = await this.userModel.updateOne({ _id: id }, { $set: { isActive: estado } });
+<<<<<<< HEAD
       const data = { message: "El estado del usuario fue actualizado con exito.", Username: usuario?.Username }
       if (result) {
         const savedlog = await this.logsService.enviarLog(data, "estadoActualizado", token);
       } else {
         const savedlog = await this.logsService.enviarLog(data, "estadoNoActualizado", token);
         throw new BadRequestException("Ocurrió un error al actualizar la información del usuario.")
+=======
+
+      if (!result) {
+        throw new UnprocessableEntityException("Ocurrio un error al actualizar el estado del usuario")
+>>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
       }
     } catch (error) {
+<<<<<<< HEAD
       const savedlog = await this.logsService.enviarLog({ message: "Ocurrio un error al actualizar el estado del usuario." }, "usuarioactualizado", token);
       throw new InternalServerErrorException("Error interno en el servidor: Ocurrió un error al actualizar la información del usuario.")
+=======
+      handleKnownErrors(error, "No se pudo acutalizar el estado del usuario")
+>>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     }
 
   }
@@ -185,6 +229,61 @@ export class UsersService {
       throw new InternalServerErrorException(
         'Ocurrio un error al obtener la informacion para los select de los usuarios',
       );
+    }
+  }
+
+  async getPerfil(userId: string) {
+    try {
+      const result = await this.userModel.findOne(
+        { _id: new Types.ObjectId(userId) },
+        { Password: 0, Rol: 0 },
+      );
+
+      if (!result) throw new NotFoundException("No se encontró la información para el perfil del usuario")
+
+      const populatedResult = await populateUsers([result]);
+
+      if (!populatedResult) throw new UnprocessableEntityException("Ocurrio un error al formatear la informacion del usuario")
+      return populatedResult[0];
+    } catch (error) {
+      handleKnownErrors(error, "No se pudo obtener el perfil de usuario")
+    }
+  }
+
+  async updatePerfil(userId: string, body: { Nombre: string, Telefono: string, Extension: string, Ubicacion: string }) {
+    try {
+      const result = await this.userModel.findOneAndUpdate(
+        { _id: new Types.ObjectId(userId) },
+        { ...body },
+      );
+
+      if (!result) throw new BadRequestException("Ocurrió un error al actualizar la información del perfil")
+
+      return { message: "Información actualizada correctamente" }
+    } catch (error) {
+      handleKnownErrors(error, "No se pudo actualizar el perfil de usuario")
+    }
+  }
+
+  async changePassword(userId: string, Password: string, newPassword: string) {
+    try {
+      const user = await this.userModel.findById(userId);
+
+      if (!user) throw new NotFoundException("No se encontró el usuario")
+
+      const isMatch = await bcrypt.compare(Password, user.Password)
+
+      if (!isMatch) throw new BadRequestException("La contraseña actual no es correcta");
+
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      user.Password = hashedPassword
+      await user.save();
+
+      return { message: "Contraseña cambiada correctamente" }
+    } catch (error) {
+      handleKnownErrors(error, "No se pudo cambiar la contraseña")
     }
   }
 }

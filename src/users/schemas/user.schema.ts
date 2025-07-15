@@ -36,10 +36,10 @@ export class Usuarios {
   @Prop({ required: true })
   Correo: string;
 
-  @Prop()
+  @Prop({ default: "0000000000" })
   Telefono: string;
 
-  @Prop()
+  @Prop({ default: "00000" })
   Extension: string;
 
   @Prop()
