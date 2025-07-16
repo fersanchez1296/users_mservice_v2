@@ -29,14 +29,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Crea un nuevo usuario' })
   @UseInterceptors(GenerateUserInterceptor, GeneratePasswordInterceptor)
   @Post()
-<<<<<<< HEAD
   async create(@Body() createUserDto: CreateUserDto, @Token() token: string) {
     console.log(createUserDto)
     return await this.usersService.create(createUserDto, token);
-=======
-  async create(@Body() createUserDto: CreateUserDto) {
-    return await this.usersService.create(createUserDto);
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
   }
 
   @ApiOperation({ summary: 'Obtiene todos los usuarios de la base de datos' })
@@ -81,24 +76,12 @@ export class UsersController {
   }
 
   @Patch('/editar/:id')
-<<<<<<< HEAD
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Token() token: string) {
     return await this.usersService.update(id, updateUserDto, token);
   }
 
   @Patch('/estado/:id')
   async updateEstadoUsuario(@Param('id') id: string, @Body() estadoUsuario: { estado: boolean }, @Token() token: string) {
-=======
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(id, updateUserDto);
-  }
-
-  @Patch('/estado/:id')
-  async updateEstadoUsuario(
-    @Param('id') id: string,
-    @Body() estadoUsuario: { estado: boolean },
-  ) {
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     const { estado } = estadoUsuario;
     return await this.usersService.updateEstadoUsuario(id, estado, token);
   }

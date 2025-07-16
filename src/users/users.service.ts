@@ -16,13 +16,10 @@ import { populateUsers } from 'src/common/utils/populateUsers.util';
 import { Dependencia } from './schemas/dependencia.schema';
 import { Celula } from './schemas/celula.schema';
 import { Puesto } from './schemas/puestos.schema';
-<<<<<<< HEAD
 import { LogsService } from 'src/services/logs.service';
-=======
 import * as bcrypt from 'bcrypt';
 import { handleKnownErrors } from 'src/common/utils/handle-known-errors.util';
 import { RedisPublisher } from 'src/redis/redis.publisher';
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
 @Injectable()
 export class UsersService {
   constructor(
@@ -41,7 +38,6 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto, token: string) {
     try {
-<<<<<<< HEAD
       const newUser = await this.userModel.create(createUserDto);
       const data = { Username: newUser.Username, destinatario: newUser.Correo }
       if (newUser) {
@@ -50,21 +46,7 @@ export class UsersService {
       }
     } catch (error) {
       const savedlog = await this.logsService.enviarLog({ Nombre: createUserDto.Nombre }, "usuarioNoCreado", token, error);
-      throw new InternalServerErrorException("Error interno en el servidor: Error al crear al usuario");
-=======
-      const newUser = await this.userModel.create({ ...createUserDto, Password: createUserDto.hashedPassword });
-      if (!newUser) throw new UnprocessableEntityException("No se pudo crear al usuario")
-      const message = {
-        destinatario: newUser.Correo,
-        username: newUser.Username,
-        nombre: newUser.Nombre,
-        password: createUserDto.Password,
-      }
-      await this.redisPublisher.publish("channel_crearUsuario", message)
-      return newUser;
-    } catch (error) {
       handleKnownErrors(error, "No se pudo crear al usuario")
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     }
   }
 
@@ -133,7 +115,6 @@ export class UsersService {
   async update(id: string, updateUserDto: any, token: string) {
     try {
       const userUpdated = await this.userModel.findOneAndUpdate({ _id: id }, { $set: updateUserDto });
-<<<<<<< HEAD
       const data = { Username: userUpdated?.Username, destinatario: userUpdated?.Correo }
       if (userUpdated) {
         const savedlog = await this.logsService.enviarLog(data, "usuarioactualizado", token);
@@ -143,15 +124,7 @@ export class UsersService {
       }
     } catch (error) {
       const savedlog = await this.logsService.enviarLog({ Nombre: updateUserDto.Nombre }, "usuarioNoactualizado", token, error);
-      throw new InternalServerErrorException("Error interno en el servidor: Ocurrió un error al actualizar la información del usuario.")
-=======
-      if (!userUpdated) {
-        throw new UnprocessableEntityException("Ocurrió un error al actualizar la información del usuario.")
-      }
-      return { message: "La información del usuario fue actualizada con éxito" };
-    } catch (error) {
       handleKnownErrors(error, "Ocurrió un error al actualizar la información del usuario")
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     }
   }
 
@@ -159,26 +132,17 @@ export class UsersService {
     try {
       const usuario = await this.userModel.findById(id);
       const result = await this.userModel.updateOne({ _id: id }, { $set: { isActive: estado } });
-<<<<<<< HEAD
       const data = { message: "El estado del usuario fue actualizado con exito.", Username: usuario?.Username }
       if (result) {
         const savedlog = await this.logsService.enviarLog(data, "estadoActualizado", token);
       } else {
         const savedlog = await this.logsService.enviarLog(data, "estadoNoActualizado", token);
         throw new BadRequestException("Ocurrió un error al actualizar la información del usuario.")
-=======
 
-      if (!result) {
-        throw new UnprocessableEntityException("Ocurrio un error al actualizar el estado del usuario")
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
       }
     } catch (error) {
-<<<<<<< HEAD
       const savedlog = await this.logsService.enviarLog({ message: "Ocurrio un error al actualizar el estado del usuario." }, "usuarioactualizado", token);
-      throw new InternalServerErrorException("Error interno en el servidor: Ocurrió un error al actualizar la información del usuario.")
-=======
       handleKnownErrors(error, "No se pudo acutalizar el estado del usuario")
->>>>>>> d2f9b1d48174fe14f5ff4c89312b853b9780826b
     }
 
   }
